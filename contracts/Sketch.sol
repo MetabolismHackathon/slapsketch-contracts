@@ -19,7 +19,7 @@ interface IXDAOFactory {
         uint8 _quorum,
         address[] memory _partners,
         uint256[] memory _shares
-    ) external pure returns (bool);
+    ) external returns (bool);
 }
 
 contract Sketch is ERC721URIStorage {
@@ -33,18 +33,20 @@ contract Sketch is ERC721URIStorage {
     function startSketch(string memory jsonMeta) public returns (uint256){
         _tokenIds.increment();
         uint256 newItemId = _tokenIds.current();
+        _mint(msg.sender, newItemId);
         _setTokenURI(newItemId, jsonMeta);
         return newItemId;
     }
 
     address private constant XDaoContractPoligonAddress = 0x72cc6E4DE47f673062c41C67505188144a0a3D84;
+
     function create(
         string memory _daoName,
         string memory _daoSymbol,
         uint8 _quorum,
         address[] memory _partners,
         uint256[] memory _shares
-    ) external pure returns (bool) {
-        IXDAOFactory(XDaoContractPoligonAddress).create(_daoName, _daoSymbol, _quorum, _partners, _shares);
+    ) external returns (bool) {
+        return IXDAOFactory(XDaoContractPoligonAddress).create(_daoName, _daoSymbol, _quorum, _partners, _shares);
     }
 }
