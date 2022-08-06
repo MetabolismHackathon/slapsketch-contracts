@@ -20,8 +20,9 @@ contract Collab {
     Sketch sketch;
     string public name;
     uint256 public id;
+    address public initiator;
     address public daoAddress;
-    bytes32 public setPermittedData;
+    bytes32 public encodedAddPermittedData;
 
     constructor(
         Sketch sketch_,
@@ -31,17 +32,32 @@ contract Collab {
         name = name_;
         id = sketchId_;
 
+        initiator = sketch.ownerOf(sketchId_);
         sketch.transferFrom(
-            sketch.ownerOf(sketchId_),
+            initiator,
             address(this),
             sketchId_);
-
         createDAO(sketchId_);
         prepareSetPermittedData();
     }
 
+    function setupPermitted(bytes calldata signature) external {
+        bytes[] memory sigs = new bytes[](1);
+        sigs[0] = signature;
+
+        bytes memory data = abi.encodeWithSelector(
+            IDaoExecuteAddPermitted(daoAddress).execute.selector,
+            daoAddress,
+            encodedAddPermittedData,
+            0,
+            0, //TODO nonce
+            block.timestamp,
+            sigs
+        );
+        daoAddress.staticcall(data);
+    }
+
     function createDAO(uint256 sketchId) private {
-        address initiator = msg.sender;
         require(msg.sender == tx.origin);
         address[] memory participants = new address[](1);
         participants[0] = initiator;
