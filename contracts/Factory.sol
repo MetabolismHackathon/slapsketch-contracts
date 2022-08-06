@@ -24,8 +24,10 @@ contract Factory is Ownable {
     @notice accept a sketch NFT and create a new Collab contract
     */
     function createCollab(uint256 sketchId, string memory name) public returns (uint256, bytes32){
-        Collab c = new Collab(sketch, name, sketchId);
-        collabs[sketchId] = c;
-        return (sketchId, c.encodedAddPermittedData());
+        Collab collab = new Collab(sketch, name, sketchId);
+        collabs[sketchId] = collab;
+        sketch.transferFrom(msg.sender, address(collab), sketchId);
+
+        return (sketchId, collab.encodedAddPermittedData());
     }
 }

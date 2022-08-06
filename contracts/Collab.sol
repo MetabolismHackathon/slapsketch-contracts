@@ -28,15 +28,12 @@ contract Collab {
         Sketch sketch_,
         string memory name_,
         uint256 sketchId_) {
+
         sketch = sketch_;
         name = name_;
         id = sketchId_;
 
         initiator = sketch.ownerOf(sketchId_);
-        sketch.transferFrom(
-            initiator,
-            address(this),
-            sketchId_);
         createDAO(sketchId_);
         prepareSetPermittedData();
     }
@@ -58,7 +55,6 @@ contract Collab {
     }
 
     function createDAO(uint256 sketchId) private {
-        require(msg.sender == tx.origin);
         address[] memory participants = new address[](1);
         participants[0] = initiator;
         uint256[] memory shares = new uint256[](1);
