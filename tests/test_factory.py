@@ -32,14 +32,12 @@ def test_create(sketch, accounts):
     assert symbol == dao.symbol()
 
 
-@pytest.fixture(scope="module", autouse=True)
-def collab(Collab, accounts, sketch):
-    sketch_id = sketch.startSketch("ipfs:///bafyreichzhlqfew2prvc6hpx2ug5lxn25sfwutwlx3iby64r46ztl2wgme/metadata.json").return_value
-    t = accounts[0].deploy(Collab, sketch, "Name", sketch_id)
-    yield t
-
 
 @pytest.mark.require_network("polygon-main-fork-alchemy")
-def test_create_collab(collab, accounts):
+def test_create_collab(factory, sketch, accounts):
+    factory.setSketch(sketch);
+    sketch.setFactory(factory);
+    sketch_id = sketch.startSketch("ipfs:///bafyreichzhlqfew2prvc6hpx2ug5lxn25sfwutwlx3iby64r46ztl2wgme/metadata.json").return_value
+    collab = factory.createCollab(sketch_id, "Name")
     assert collab == accounts
 
