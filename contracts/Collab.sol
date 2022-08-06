@@ -43,21 +43,25 @@ contract Collab {
     function createDAO(uint256 sketchId) private {
         address initiator = msg.sender;
         require(msg.sender == tx.origin);
-        xDaoFactory.create("SlapSketch_123", "SLAP123", 30, [initiator], [1]);
+        address[] memory participants = new address[](1);
+        participants[0] = initiator;
+        uint256[] memory shares = new uint256[](1);
+        shares[0] = 1;
+        xDaoFactory.create("SlapSketch_123", "SLAP123", 30, participants, shares);
         daoAddress = xDaoFactory.daoAt(xDaoFactory.numberOfDaos() - 1);
 
     }
 
     function prepareSetPermittedData() private {
         IDaoExecuteAddPermitted dao = IDaoExecuteAddPermitted(daoAddress);
-        bytes encodedAddPermitted = abi.encodeWithSelector(dao.addPermitted.selector, address(this));
+        bytes memory encodedAddPermitted = abi.encodeWithSelector(dao.addPermitted.selector, address(this));
 
-        bytes32 txHash = getTxHash(dao, encodedAddPermitted, 0, 0, block.timestamp);
+        bytes32 txHash = getTxHash(daoAddress, encodedAddPermitted, 0, 0, block.timestamp);
     }
 
     function getTxHash(
         address _target,
-        bytes calldata _data,
+        bytes memory _data,
         uint256 _value,
         uint256 _nonce,
         uint256 _timestamp

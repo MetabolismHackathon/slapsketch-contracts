@@ -21,6 +21,6 @@ contract Factory {
     function createCollab(uint256 sketchId, string memory name) public returns (uint256, bytes32){
         Collab c = new Collab(sketch, name, sketchId);
         collabs[sketchId] = c;
-        return (sketchId, c.setPermittedData);
+        return (sketchId, c.setPermittedData());
     }
 }
