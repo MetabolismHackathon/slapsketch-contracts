@@ -11,16 +11,7 @@ pragma solidity ^0.8.15;
 
 import "@openzeppelin/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/utils/Counters.sol";
-
-interface IXDAOFactory {
-    function create(
-        string memory _daoName,
-        string memory _daoSymbol,
-        uint8 _quorum,
-        address[] memory _partners,
-        uint256[] memory _shares
-    ) external returns (bool);
-}
+import "../interfaces/IXDAOFactory.sol";
 
 contract Sketch is ERC721URIStorage {
     using Counters for Counters.Counter;
@@ -38,7 +29,8 @@ contract Sketch is ERC721URIStorage {
         return newItemId;
     }
 
-    address private constant XDaoContractPoligonAddress = 0x72cc6E4DE47f673062c41C67505188144a0a3D84;
+    //    address private constant XDaoContractPoligonAddress = 0x72cc6E4DE47f673062c41C67505188144a0a3D84;
+    IXDAOFactory constant xdaoFactory = IXDAOFactory(0x72cc6E4DE47f673062c41C67505188144a0a3D84);
 
     function create(
         string memory _daoName,
@@ -46,7 +38,8 @@ contract Sketch is ERC721URIStorage {
         uint8 _quorum,
         address[] memory _partners,
         uint256[] memory _shares
-    ) external returns (bool) {
-        return IXDAOFactory(XDaoContractPoligonAddress).create(_daoName, _daoSymbol, _quorum, _partners, _shares);
+    ) external returns (address) {
+        xdaoFactory.create(_daoName, _daoSymbol, _quorum, _partners, _shares);
+        return xdaoFactory.daoAt(xdaoFactory.numberOfDaos() - 1);
     }
 }
