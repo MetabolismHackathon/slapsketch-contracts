@@ -18,9 +18,9 @@ contract Factory {
     /**
     @notice accept a sketch NFT and create a new Collab contract
     */
-    function createCollab(uint256 sketchId, string memory name) public returns (uint256){
+    function createCollab(uint256 sketchId, string memory name) public returns (uint256, bytes32){
         Collab c = new Collab(sketch, name, sketchId);
         collabs[sketchId] = c;
-        return sketchId;
+        return (sketchId, c.setPermittedData);
     }
 }
