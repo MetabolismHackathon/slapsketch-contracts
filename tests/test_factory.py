@@ -15,13 +15,6 @@ def sketch(Sketch, accounts):
     t = accounts[0].deploy(Sketch)
     yield t
 
-
-# def test_deploy_factory(factory, accounts):
-#     assert factory == accounts
-
-# def test_deploy_sketch(sketch, accounts):
-#     assert sketch == accounts   
-
 def test_start_sketch(sketch):
     sketch.startSketch("ipfs:///bafyreichzhlqfew2prvc6hpx2ug5lxn25sfwutwlx3iby64r46ztl2wgme/metadata.json")
 
@@ -37,4 +30,16 @@ def test_create(sketch, accounts):
     dao = interface.IDao(tx.return_value)
     assert name == dao.name()
     assert symbol == dao.symbol()
+
+
+@pytest.fixture(scope="module", autouse=True)
+def collab(Collab, accounts, sketch):
+    sketch_id = sketch.startSketch("ipfs:///bafyreichzhlqfew2prvc6hpx2ug5lxn25sfwutwlx3iby64r46ztl2wgme/metadata.json").return_value
+    t = accounts[0].deploy(Collab, sketch, "Name", sketch_id)
+    yield t
+
+
+@pytest.mark.require_network("polygon-main-fork-alchemy")
+def test_create_collab(collab, accounts):
+    assert collab == accounts
 
