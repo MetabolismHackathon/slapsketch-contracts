@@ -1,5 +1,7 @@
 import pytest
-from brownie import accounts
+import random
+import string
+from brownie import interface
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -23,7 +25,16 @@ def sketch(Sketch, accounts):
 def test_start_sketch(sketch):
     sketch.startSketch("ipfs:///bafyreichzhlqfew2prvc6hpx2ug5lxn25sfwutwlx3iby64r46ztl2wgme/metadata.json")
 
+def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
+    return ''.join(random.choice(chars) for _ in range(size))
 
-@pytest.mark.require_network("polygon-main-fork")
-def test_create(sketch):
-    sketch.create("DAOName", "DAOSymbol", 51, [accounts[0]], [1])
+@pytest.mark.require_network("polygon-main-fork-alchemy")
+def test_create(sketch, accounts):
+    id = id_generator(3)
+    name = id + "N";
+    symbol = id + "S";
+    tx = sketch.create(name, symbol, 51, [accounts[0]], [1])
+    dao = interface.IDao(tx.return_value)
+    assert name == dao.name()
+    assert symbol == dao.symbol()
+
