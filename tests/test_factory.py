@@ -43,5 +43,5 @@ def test_create_collab(factory, sketch, accounts):
         "ipfs:///bafyreichzhlqfew2prvc6hpx2ug5lxn25sfwutwlx3iby64r46ztl2wgme/metadata.json"
     ).return_value
 
-    collab = factory.createCollab(sketch_id, "Name")
+    collab = factory.createCollab(sketch_id, "Name").return_value[0]
     assert sketch.ownerOf(sketch_id) == collab
