@@ -9,11 +9,16 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
+import "@openzeppelin/access/Ownable.sol";
 import "./Collab.sol";
 
-contract Factory {
+contract Factory is Ownable {
     Sketch sketch;
     mapping(uint256 => Collab) public collabs;
+
+    function setSketch(Sketch _sketch) public onlyOwner {
+        sketch = _sketch;
+    }
 
     /**
     @notice accept a sketch NFT and create a new Collab contract

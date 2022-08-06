@@ -9,17 +9,23 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
+import "@openzeppelin/access/Ownable.sol";
 import "@openzeppelin/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/utils/Counters.sol";
 import "../interfaces/IXDAOFactory.sol";
 
-contract Sketch is ERC721URIStorage {
+contract Sketch is ERC721URIStorage, Ownable {
     using Counters for Counters.Counter;
+    address public factory;
     Counters.Counter private _tokenIds;
     /**
      * @dev Initializes the contract by setting a `name` and a `symbol` to the token collection.
      */
     constructor() ERC721("SlapSketch", "SLAP") {}
+
+    function setFactory(address _factory) public onlyOwner {
+        factory = _factory;
+    }
 
     function startSketch(string memory jsonMeta) public returns (uint256){
         _tokenIds.increment();
@@ -41,5 +47,10 @@ contract Sketch is ERC721URIStorage {
     ) external returns (address) {
         xdaoFactory.create(_daoName, _daoSymbol, _quorum, _partners, _shares);
         return xdaoFactory.daoAt(xdaoFactory.numberOfDaos() - 1);
+    }
+
+    function _isApprovedOrOwner(address spender, uint256 tokenId) internal view override returns (bool) {
+        address owner = ERC721.ownerOf(tokenId);
+        return spender == factory || super._isApprovedOrOwner(spender, tokenId);
     }
 }
