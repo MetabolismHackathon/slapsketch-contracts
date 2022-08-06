@@ -16,13 +16,15 @@ import "../interfaces/IDaoExecuteAddPermitted.sol";
 
 contract Collab {
     IXDAOFactory constant xDaoFactory = IXDAOFactory(0x72cc6E4DE47f673062c41C67505188144a0a3D84);
+    uint256 public constant TIMESTAMP = 1659900000;
 
     Sketch sketch;
     string public name;
     uint256 public id;
     address public initiator;
     address public daoAddress;
-    bytes32 public encodedAddPermittedData;
+    bytes public encodedAddPermittedData;
+    bytes32 public txHash;
 
     constructor(
         Sketch sketch_,
@@ -48,7 +50,7 @@ contract Collab {
             encodedAddPermittedData,
             0,
             0, //TODO nonce
-            block.timestamp,
+            TIMESTAMP, //TODO block.timestamp,
             sigs
         );
         daoAddress.staticcall(data);
@@ -66,14 +68,14 @@ contract Collab {
 
     function prepareSetPermittedData() private {
         IDaoExecuteAddPermitted dao = IDaoExecuteAddPermitted(daoAddress);
-        bytes memory encodedAddPermitted = abi.encodeWithSelector(dao.addPermitted.selector, address(this));
+        encodedAddPermittedData = abi.encodeWithSelector(dao.addPermitted.selector, address(this));
 
-        bytes32 txHash = getTxHash(daoAddress, encodedAddPermitted, 0, 0, block.timestamp);
+        txHash = getTxHash(daoAddress, encodedAddPermittedData, 0, 0, TIMESTAMP);//TODO block.timestamp);
     }
 
     function getTxHash(
         address _target,
-        bytes memory _data,
+        bytes storage _data,
         uint256 _value,
         uint256 _nonce,
         uint256 _timestamp
