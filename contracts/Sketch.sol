@@ -12,7 +12,7 @@ pragma solidity ^0.8.15;
 import "@openzeppelin/access/Ownable.sol";
 import "@openzeppelin/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/utils/Counters.sol";
-import "../interfaces/IXDAOFactory.sol";
+import "../interfaces/xdao/IXDAOFactory.sol";
 
 contract Sketch is ERC721URIStorage, Ownable {
     using Counters for Counters.Counter;

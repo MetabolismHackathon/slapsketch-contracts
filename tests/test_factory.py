@@ -46,7 +46,7 @@ def test_create_collab(factory, sketch, accounts, Collab):
         {"from": local}
     ).return_value
 
-    collab_address, sign_message = factory.createCollab(sketch_id, "Name", {"from": local}).return_value
+    collab_address, sign_message = factory.createCollab(sketch_id, "Name", 2, 2, {"from": local}).return_value
     
     assert sketch.ownerOf(sketch_id) == collab_address
     print("------------------------------------------------------------------------------------------------------")

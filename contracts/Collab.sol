@@ -11,12 +11,16 @@ pragma solidity ^0.8.0;
 pragma abicoder v2;
 
 import "./Sketch.sol";
-import "../interfaces/IDaoExecuteAddPermitted.sol";
+import "../interfaces/xdao/IDaoExecuteAddPermitted.sol";
+import "../interfaces/ICollab.sol";
+
 import "@openzeppelin/utils/Address.sol";
 
 
-contract Collab {
+contract Collab is ICollab {
     using Address for address;
+    uint8 constant public MAX_PIECES_PER_SKETCH = 100;
+
     IXDAOFactory constant xDaoFactory = IXDAOFactory(0x72cc6E4DE47f673062c41C67505188144a0a3D84);
     uint256 public constant TIMESTAMP = 1659900000;
 
@@ -27,19 +31,56 @@ contract Collab {
     address public daoAddress;
     bytes public encodedAddPermittedData;
     bytes32 public txHash;
+    uint8 public rows;
+    uint8 public columns;
+    uint8 public piecesNumber;
+    mapping(address => mapping(uint8 => bool)) public upvotes;
+    mapping(address => mapping(uint8 => bool)) public downvotes;
+    uint8[] public totalUpvotes;
+    uint8[] public totalDownvotes;
 
     constructor(
         Sketch sketch_,
         string memory name_,
-        uint256 sketchId_) {
-
+        uint256 sketchId_,
+        uint8 rows_,
+        uint8 columns_
+    ) {
         sketch = sketch_;
         name = name_;
         id = sketchId_;
 
+        rows = rows_;
+        columns = columns_;
+        piecesNumber = rows * columns;
+        require(piecesNumber <= MAX_PIECES_PER_SKETCH, "Collab: Too many pieces");
+        totalUpvotes = new uint8[](piecesNumber);
+        totalDownvotes = new uint8[](piecesNumber);
+
         initiator = sketch.ownerOf(sketchId_);
         createDAO(sketchId_);
         prepareSetPermittedData();
+    }
+
+    function evaluatePieces(uint8[] calldata upvotes_, uint8[] calldata downvotes_) external returns (uint8){
+        uint8 totalChanges = 0;
+        for (uint8 i = 0; i < upvotes_.length; i++) {
+            uint8 pieceId = upvotes_[i];
+            if (!upvotes[msg.sender][pieceId]) {
+                upvotes[msg.sender][pieceId] = true;
+                totalUpvotes[pieceId]++;
+                totalChanges++;
+            }
+        }
+        for (uint8 i = 0; i < downvotes_.length; i++) {
+            uint8 pieceId = downvotes_[i];
+            if (!downvotes[msg.sender][pieceId]) {
+                downvotes[msg.sender][pieceId] = true;
+                totalDownvotes[pieceId]++;
+                totalChanges++;
+            }
+        }
+        return totalChanges;
     }
 
     function setupPermitted(bytes calldata signature) external {
@@ -72,7 +113,8 @@ contract Collab {
         IDaoExecuteAddPermitted dao = IDaoExecuteAddPermitted(daoAddress);
         encodedAddPermittedData = abi.encodeWithSelector(dao.addPermitted.selector, address(this));
 
-        txHash = getTxHash(daoAddress, encodedAddPermittedData, 0, 0, TIMESTAMP);//TODO block.timestamp);
+        txHash = getTxHash(daoAddress, encodedAddPermittedData, 0, 0, TIMESTAMP);
+        //TODO block.timestamp);
     }
 
     function getTxHash(
