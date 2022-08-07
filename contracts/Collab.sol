@@ -28,9 +28,11 @@ contract Collab is ICollab {
     string public name;
     uint256 public id;
     address public initiator;
+
     address public daoAddress;
     bytes public encodedAddPermittedData;
     bytes32 public txHash;
+
     uint8 public rows;
     uint8 public columns;
     uint8 public piecesNumber;
@@ -38,6 +40,8 @@ contract Collab is ICollab {
     mapping(address => mapping(uint8 => bool)) public downvotes;
     uint8[] public totalUpvotes;
     uint8[] public totalDownvotes;
+    address[] public creators;
+    bool public isFinalized;
 
     constructor(
         Sketch sketch_,
@@ -56,10 +60,19 @@ contract Collab is ICollab {
         require(piecesNumber <= MAX_PIECES_PER_SKETCH, "Collab: Too many pieces");
         totalUpvotes = new uint8[](piecesNumber);
         totalDownvotes = new uint8[](piecesNumber);
-
+        creators = new address[](piecesNumber);
         initiator = sketch.ownerOf(sketchId_);
+
         createDAO(sketchId_);
         prepareSetPermittedData();
+    }
+
+    function claim(uint8 pieceIndex) external {
+        require(pieceIndex < piecesNumber, "Collab: Piece index out of bounds");
+        require(creators[pieceIndex] == address(0), "Collab: Piece already claimed");
+        require(!isFinalized, "Collab: Collab is finished");
+        creators[pieceIndex] = msg.sender;
+        //TODO add staking as claim requirement
     }
 
     function evaluatePieces(uint8[] calldata upvotes_, uint8[] calldata downvotes_) external returns (uint8){

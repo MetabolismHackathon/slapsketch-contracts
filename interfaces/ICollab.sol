@@ -10,7 +10,9 @@
 pragma solidity ^0.8.15;
 
 interface ICollab {
+    function claim(uint8 pieceIndex) external;
+
     //TODO switch to hybrid voting
     //TODO (optional) switch to bitsets
-    function evaluatePieces(uint8[] calldata upvotes, uint8[] calldata downvotes) external returns(uint8);
+    function evaluatePieces(uint8[] calldata upvotes, uint8[] calldata downvotes) external returns (uint8);
 }

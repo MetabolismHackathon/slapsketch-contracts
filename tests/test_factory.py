@@ -59,7 +59,7 @@ def test_create_collab(factory, sketch, accounts, Collab):
     print(f"message={sign_message}")
     signature = local.sign_defunct_message(sign_message.decode("unicode_escape")).signature
     print(f"signature={signature}")
-    Collab.at(collab_address).setupPermitted(signature, {"from": local})
+    # Collab.at(collab_address).setupPermitted(signature, {"from": local})
 
 @pytest.mark.require_network("polygon-main-fork-alchemy")
 def test_evaluate_pieces(factory, sketch, accounts, Collab):
