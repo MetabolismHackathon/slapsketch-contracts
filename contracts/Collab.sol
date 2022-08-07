@@ -15,9 +15,11 @@ import "../interfaces/xdao/IDaoExecuteAddPermitted.sol";
 import "../interfaces/ICollab.sol";
 
 import "@openzeppelin/utils/Address.sol";
+import "@openzeppelin/utils/cryptography/ECDSA.sol";
 
 
 contract Collab is ICollab {
+    using ECDSA for bytes32;
     using Address for address;
     uint8 constant public MAX_PIECES_PER_SKETCH = 100;
 
@@ -103,23 +105,23 @@ contract Collab is ICollab {
         bytes[] memory sigs = new bytes[](1);
         sigs[0] = signature;
 
-        bytes memory data = abi.encodeWithSelector(
-            IDaoExecuteAddPermitted(daoAddress).execute.selector,
+        IDaoExecuteAddPermitted(daoAddress).execute(
             daoAddress,
             encodedAddPermittedData,
             0,
             0, //TODO nonce
-            TIMESTAMP, //TODO block.timestamp,
+            TIMESTAMP, //TODO block.timestamp
             sigs
         );
-        daoAddress.functionCall(data);
     }
 
     function createDAO(uint256 sketchId) private {
-        address[] memory participants = new address[](1);
+        address[] memory participants = new address[](2);
         participants[0] = initiator;
-        uint256[] memory shares = new uint256[](1);
-        shares[0] = 1;
+        participants[1] = address(this);
+        uint256[] memory shares = new uint256[](2);
+        shares[0] = 2;  
+        shares[1] = 1;
         xDaoFactory.create("SlapSketch_123", "SLAP123", 30, participants, shares);
         daoAddress = xDaoFactory.daoAt(xDaoFactory.numberOfDaos() - 1);
 
@@ -129,7 +131,7 @@ contract Collab is ICollab {
         IDaoExecuteAddPermitted dao = IDaoExecuteAddPermitted(daoAddress);
         encodedAddPermittedData = abi.encodeWithSelector(dao.addPermitted.selector, address(this));
 
-        txHash = getTxHash(daoAddress, encodedAddPermittedData, 0, 0, TIMESTAMP);
+        txHash = getTxHash(daoAddress, encodedAddPermittedData, 0, 0, TIMESTAMP).toEthSignedMessageHash();
         //TODO block.timestamp);
     }
 
@@ -143,7 +145,7 @@ contract Collab is ICollab {
         return
         keccak256(
             abi.encode(
-                address(this),
+                _target,// address(this),
                 _target,
                 _data,
                 _value,

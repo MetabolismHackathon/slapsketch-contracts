@@ -37,8 +37,9 @@ def test_create(sketch, accounts):
 
 
 @pytest.mark.require_network("polygon-main-fork-alchemy")
-def test_create_collab(factory, sketch, accounts, Collab):
+def test_create_collab(factory, sketch, accounts, Collab, web3):
     local = accounts.add(private_key="0x416b8a7d9290502f5661da81f0cf43893e3d19cb9aea3c426cfb36e8186e9c09")
+    accounts[0].transfer(local, 10)
     factory.setSketch(sketch)
     sketch.setFactory(factory)
     sketch_id = sketch.startSketch(
@@ -52,12 +53,12 @@ def test_create_collab(factory, sketch, accounts, Collab):
     print("------------------------------------------------------------------------------------------------------")
     print("encodedAddPermittedData:")
     print(Collab.at(collab_address).encodedAddPermittedData())
-    print("txHash:")
-    print(Collab.at(collab_address).txHash())
-    print("------------------------------------------------------------------------------------------------------")
+    txhash = Collab.at(collab_address).txHash()
+    print(f"txhash={txhash}")
     print(f"signer={local.address}")
     print(f"message={sign_message}")
-    signature = local.sign_defunct_message(sign_message.decode("unicode_escape")).signature
+    print(f"collab_address={collab_address}")
+    signature = web3.eth.account.signHash(txhash, "0x416b8a7d9290502f5661da81f0cf43893e3d19cb9aea3c426cfb36e8186e9c09").signature
     print(f"signature={signature}")
     # Collab.at(collab_address).setupPermitted(signature, {"from": local})
 
