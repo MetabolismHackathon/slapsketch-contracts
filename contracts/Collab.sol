@@ -36,11 +36,8 @@ contract Collab is ICollab {
     uint8 public rows;
     uint8 public columns;
     uint8 public piecesNumber;
-    mapping(address => mapping(uint8 => bool)) public upvotes;
-    mapping(address => mapping(uint8 => bool)) public downvotes;
-    uint8[] public totalUpvotes;
-    uint8[] public totalDownvotes;
-    address[] public creators;
+    PieceInfo[MAX_PIECES_PER_SKETCH] public pieces;
+
     bool public isFinalized;
 
     constructor(
@@ -58,9 +55,7 @@ contract Collab is ICollab {
         columns = columns_;
         piecesNumber = rows * columns;
         require(piecesNumber <= MAX_PIECES_PER_SKETCH, "Collab: Too many pieces");
-        totalUpvotes = new uint8[](piecesNumber);
-        totalDownvotes = new uint8[](piecesNumber);
-        creators = new address[](piecesNumber);
+
         initiator = sketch.ownerOf(sketchId_);
 
         createDAO(sketchId_);
@@ -69,27 +64,35 @@ contract Collab is ICollab {
 
     function claim(uint8 pieceIndex) external {
         require(pieceIndex < piecesNumber, "Collab: Piece index out of bounds");
-        require(creators[pieceIndex] == address(0), "Collab: Piece already claimed");
+        require(pieces[pieceIndex].creator == address(0), "Collab: Piece already claimed");
         require(!isFinalized, "Collab: Collab is finished");
-        creators[pieceIndex] = msg.sender;
+        pieces[pieceIndex].creator = msg.sender;
         //TODO add staking as claim requirement
+    }
+
+    function submitPieceEdition(uint8 pieceIndex, uint256 sketchId) external {
+        require(pieceIndex < piecesNumber, "Collab: Piece index out of bounds");
+        require(pieces[pieceIndex].creator == msg.sender, "Collab: Only the creator can submit a piece edition");
+        require(!isFinalized, "Collab: Collab is finished");
+        sketch.transferFrom(msg.sender, address(this), sketchId);
+        pieces[pieceIndex].currentEditionSketchId = sketchId;
     }
 
     function evaluatePieces(uint8[] calldata upvotes_, uint8[] calldata downvotes_) external returns (uint8){
         uint8 totalChanges = 0;
         for (uint8 i = 0; i < upvotes_.length; i++) {
-            uint8 pieceId = upvotes_[i];
-            if (!upvotes[msg.sender][pieceId]) {
-                upvotes[msg.sender][pieceId] = true;
-                totalUpvotes[pieceId]++;
+            uint8 pieceIndex = upvotes_[i];
+            if (!pieces[pieceIndex].upvotes[msg.sender]) {
+                pieces[pieceIndex].upvotes[msg.sender] = true;
+                pieces[pieceIndex].totalUpvotes++;
                 totalChanges++;
             }
         }
         for (uint8 i = 0; i < downvotes_.length; i++) {
-            uint8 pieceId = downvotes_[i];
-            if (!downvotes[msg.sender][pieceId]) {
-                downvotes[msg.sender][pieceId] = true;
-                totalDownvotes[pieceId]++;
+            uint8 pieceIndex = downvotes_[i];
+            if (!pieces[pieceIndex].downvotes[msg.sender]) {
+                pieces[pieceIndex].downvotes[msg.sender] = true;
+                pieces[pieceIndex].totalDownvotes++;
                 totalChanges++;
             }
         }
