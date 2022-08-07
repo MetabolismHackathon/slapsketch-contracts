@@ -12,9 +12,11 @@ pragma abicoder v2;
 
 import "./Sketch.sol";
 import "../interfaces/IDaoExecuteAddPermitted.sol";
+import "@openzeppelin/utils/Address.sol";
 
 
 contract Collab {
+    using Address for address;
     IXDAOFactory constant xDaoFactory = IXDAOFactory(0x72cc6E4DE47f673062c41C67505188144a0a3D84);
     uint256 public constant TIMESTAMP = 1659900000;
 
@@ -53,7 +55,7 @@ contract Collab {
             TIMESTAMP, //TODO block.timestamp,
             sigs
         );
-        daoAddress.staticcall(data);
+        daoAddress.functionCall(data);
     }
 
     function createDAO(uint256 sketchId) private {
