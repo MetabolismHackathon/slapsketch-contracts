@@ -12,3 +12,6 @@ def main():
         {'from': deployer},
         publish_source=True,
     )
+
+    sketchContract.setFactory(factoryContract)
+    factoryContract.setSketch(sketchContract)
